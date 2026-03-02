@@ -1,0 +1,27 @@
+{
+  "name": "youtube-clone",
+  "version": "1.0.0",
+  "description": "A backend from Chai Aur Code Channel",
+  "keywords": [
+    "javascript",
+    "backend"
+  ],
+  "homepage": "https://github.com/igmoni/youtube-clone#readme",
+  "bugs": {
+    "url": "https://github.com/igmoni/youtube-clone/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/igmoni/youtube-clone.git"
+  },
+  "license": "ISC",
+  "author": "Mohan",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
