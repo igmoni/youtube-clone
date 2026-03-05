@@ -4,6 +4,14 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 
+const generateAccessAndRefershTokens = async (userId) => {
+  try {
+    const user = await User.findById(userId)
+  } catch(err) {
+    throw new ApiError(500, "Something went wrong whiel generating regresh and access token.")
+  }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
   // validation - not empty
@@ -80,4 +88,29 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User regsitered successfully!"));
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+  // req body -> data
+  // username/email based login
+  // find the user
+  // password check
+  // access & refresh token generation
+  // send cookie
+
+  const { username, email, password } = req.body;
+
+  if (!username || !email) {
+    throw new ApiError(400, "Username or email is required");
+  }
+
+  const user = await User.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  if (!user) throw new ApiError(404, "User doesn't exist");
+
+  const isPasswordValid = await user.isPasswordCorrect(password);
+
+  if (!isPasswordValid) throw new ApiError(401, "Incorrect Password");
+});
+
+export { registerUser, loginUser };
