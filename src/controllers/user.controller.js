@@ -4,9 +4,10 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 
-const generateAccessAndRefershTokens = async (userId) => {
+const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
+
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
@@ -15,9 +16,10 @@ const generateAccessAndRefershTokens = async (userId) => {
 
     return { accessToken, refreshToken };
   } catch (err) {
+    console.log("TOKEN Error:", err);
     throw new ApiError(
       500,
-      "Something went wrong whiel generating regresh and access token."
+      "Something went wrong while generating refresh and access token."
     );
   }
 };
@@ -26,21 +28,17 @@ const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
   // validation - not empty
   // check if user already exists: username, email
-  // check for images, avatar
-  // upload them to cloudinary
+  // check for images, check for avatar
+  // upload them to cloudinary, avatar
   // create user object - create entry in db
-  // remove password & refresh token
+  // remove password and refresh token field from response
   // check for user creation
-  // retrn res
+  // return res
 
-  // 1
+  console.log(req.body);
   const { fullName, email, username, password } = req.body;
   console.log("email:", email);
-  // console.log("Body:", req.body);
-  // console.log("Files:", req.files);
 
-  // // console.log(req.body)
-  // 2
   if (
     [fullName, email, username, password].some((field) => field?.trim() === "") // to check multiple things at once this is the way
   ) {
@@ -100,29 +98,34 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   // req body -> data
-  // username/email based login
-  // find the user
-  // password check
-  // access & refresh token generation
-  // send cookie
-
+  // username or email
+  //find the user
+  //password check
+  //access and referesh token
+  //send cookie
+  console.log(req.body);
   const { username, email, password } = req.body;
+  console.log(email);
 
-  if (!username || !email) {
-    throw new ApiError(400, "Username or email is required");
+  if ((!username && !email) || !password) {
+    throw new ApiError(400, "Username/email and password are required");
   }
 
   const user = await User.findOne({
     $or: [{ username }, { email }],
   });
 
-  if (!user) throw new ApiError(404, "User doesn't exist");
+  if (!user) {
+    throw new ApiError(404, "User doesn't exist");
+  }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
 
-  if (!isPasswordValid) throw new ApiError(401, "Incorrect Password");
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid password");
+  }
 
-  const { accessToken, refreshToken } = await generateAccessAndRefershTokens(
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id
   );
 
@@ -147,7 +150,7 @@ const loginUser = asyncHandler(async (req, res) => {
           accessToken,
           refreshToken,
         },
-        "User logged in Successfully"
+        "User logged in successfully"
       )
     );
 });
@@ -164,10 +167,14 @@ const logoutUser = asyncHandler(async (req, res) => {
   );
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
   };
 
-  return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options).json(new ApiResponse(200, {}, "User Logged out"))
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User Logged out"));
 });
 
 export { registerUser, loginUser, logoutUser };
